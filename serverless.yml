@@ -10,22 +10,29 @@ provider:
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
     NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000'
+    TWILIO_ACCOUNT_SID: ${self:custom.secrets.TWILIO_ACCOUNT_SID}
+    TWILIO_AUTH_TOKEN: ${self:custom.secrets.TWILIO_AUTH_TOKEN}
 
 functions:
-  hello:
-    path: src/functions/hello.handler
+  sendMessage:
+    handler: src/functions/sendMessage.handler
+    events:
+      - http:
+          method: POST
+          path: /send   
 
 custom:
-    esbuild:
-      bundle: true
-      minify: false
-      sourcemap: true
-      exclude: ['aws-sdk']
-      target: 'node14'
-      define:
-        - 'require.resolve': undefined
-      platform: 'node'
-      concurrency: 10
+  secrets: ${ssm:/aws/reference/secretsmanager/whatsapp-notifier-ssm}
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    exclude: ['aws-sdk']
+    target: 'node14'
+    define: 
+      'require.resolve': undefined
+    platform: 'node'
+    concurrency: 10
  
 
 plugins:
